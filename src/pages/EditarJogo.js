@@ -1,49 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useParams, useNavigate } from 'react-router-dom';
-import Header from './Header';
+import { useParams, useNavigate } from 'react-router-dom';
+import Header from './Header.js';
 
 const EdicaoJogo = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const [nome, setNome] = useState('');
-  const [plataforma, setPlataforma] = useState('');
-  const [genero, setGenero] = useState('');
-  const [anoLancamento, setAnoLancamento] = useState('');
+  const [name, setName] = useState('');
+  const [platform, setPlatform] = useState('');
+  const [genre, setGenre] = useState('');
+  const [release_year, setReleaseYear] = useState('');
 
   useEffect(() => {
-    const jogosSalvos = JSON.parse(localStorage.getItem('jogos')) || [];
-    const jogoParaEditar = jogosSalvos.find((jogo) => jogo.id === parseInt(id, 10));
-
-    if (jogoParaEditar) {
-      setNome(jogoParaEditar.nome);
-      setPlataforma(jogoParaEditar.plataforma);
-      setGenero(jogoParaEditar.genero);
-      setAnoLancamento(jogoParaEditar.anoLancamento);
-    } else {
-      navigate('/lista');
-    }
+    fetch(`http://localhost:3002/game/${id}`)
+      .then((response) => response.json())
+      .then((data) => {
+        setName(data.name);
+        setPlatform(data.platform);
+        setGenre(data.genre);
+        setReleaseYear(data.release_year);
+      })
+      .catch((error) => {
+        alert('Erro ao carregar os detalhes do jogo.');
+        navigate('/lista');
+      });
   }, [id, navigate]);
 
   const handleEdicao = (e) => {
     e.preventDefault();
-    const jogosSalvos = JSON.parse(localStorage.getItem('jogos')) || [];
 
-    const jogoIndex = jogosSalvos.findIndex((jogo) => jogo.id === parseInt(id, 10));
+    const jogoAtualizado = {
+      name,
+      platform,
+      genre,
+      release_year,
+    };
 
-    if (jogoIndex !== -1) {
-      const jogoAtualizado = {
-        id: parseInt(id, 10),
-        nome,
-        plataforma,
-        genero,
-        anoLancamento,
-      };
-
-      jogosSalvos[jogoIndex] = jogoAtualizado;
-      localStorage.setItem('jogos', JSON.stringify(jogosSalvos));
-      alert('Jogo editado com sucesso.');
-    }
+    fetch(`http://localhost:3002/game/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(jogoAtualizado),
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          alert('Jogo editado com sucesso.');
+          navigate('/lista');
+        } else {
+          alert('Erro ao editar o jogo.');
+        }
+      })
+      .catch((error) => {
+        alert('Erro ao editar o jogo.');
+      });
   };
 
   return (
@@ -57,16 +66,16 @@ const EdicaoJogo = () => {
             <input
               type="text"
               className="w-full border border-gray-300 rounded-md py-2 px-3 text-black"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium">Plataforma</label>
             <select
               className="w-full border border-gray-300 rounded-md py-2 px-3 text-black"
-              value={plataforma}
-              onChange={(e) => setPlataforma(e.target.value)}
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
             >
               <option value="">Selecione a Plataforma</option>
               <option value="PS1">PS1</option>
@@ -80,8 +89,8 @@ const EdicaoJogo = () => {
             <label className="block text-sm font-medium">Gênero</label>
             <select
               className="w-full border border-gray-300 rounded-md py-2 px-3 text-black"
-              value={genero}
-              onChange={(e) => setGenero(e.target.value)}
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
             >
               <option value="">Selecione o Gênero</option>
               <option value="Ação">Ação</option>
@@ -96,8 +105,8 @@ const EdicaoJogo = () => {
             <input
               type="number"
               className="w-full border border-gray-300 rounded-md py-2 px-3 text-black"
-              value={anoLancamento}
-              onChange={(e) => setAnoLancamento(e.target.value)}
+              value={release_year}
+              onChange={(e) => setReleaseYear(e.target.value)}
             />
           </div>
           <div className="flex space-x-4">
@@ -105,7 +114,7 @@ const EdicaoJogo = () => {
               type="button"
               className="text-white text-center text-sm rounded-lg block bg-gradient-to-r from-green-400 to-green-700 px-16 py-2"
               onClick={() => {
-                window.history.back();
+                navigate('/lista');
               }}
             >
               Voltar

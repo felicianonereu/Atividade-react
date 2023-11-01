@@ -1,34 +1,44 @@
 import React, { useState } from 'react';
-import Header from './Header';
+import Header from './Header.js';
 
 const CadastroJogo = () => {
-  const [nome, setNome] = useState('');
-  const [plataforma, setPlataforma] = useState('');
-  const [genero, setGenero] = useState('');
-  const [anoLancamento, setAnoLancamento] = useState('');
+  const [name, setName] = useState('');
+  const [platform, setPlatform] = useState('');
+  const [genre, setGenre] = useState('');
+  const [release_year, setReleaseYear] = useState('');
 
   const handleCadastro = (e) => {
     e.preventDefault();
 
-    if (nome && plataforma && genero && anoLancamento) {
+    if (name && platform && genre && release_year) {
       const jogo = {
-        id: new Date().getTime(),
-        nome,
-        plataforma,
-        genero,
-        anoLancamento,
+        name,
+        platform,
+        genre,
+        release_year,
       };
 
-      const jogosExistentes = JSON.parse(localStorage.getItem('jogos')) || [];
-      const novosJogos = [...jogosExistentes, jogo];
-
-      localStorage.setItem('jogos', JSON.stringify(novosJogos));
-
-      setNome('');
-      setPlataforma('');
-      setGenero('');
-      setAnoLancamento('');
-      alert('Jogo cadastrado com sucesso.');
+      fetch('http://localhost:3002/game', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jogo),
+      })
+        .then((response) => {
+          if (response.status === 200) {
+            setName('');
+            setPlatform('');
+            setGenre('');
+            setReleaseYear('');
+            alert('Jogo cadastrado com sucesso.');
+          } else {
+            alert('Erro ao cadastrar o jogo.');
+          }
+        })
+        .catch((error) => {
+          alert('Erro ao cadastrar o jogo.');
+        });
     } else {
       alert('Por favor, preencha todos os campos antes de cadastrar o jogo.');
     }
@@ -45,16 +55,16 @@ const CadastroJogo = () => {
             <input
               type="text"
               className="w-full border border-gray-300 rounded-md py-2 px-3 text-black"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
           <div className="mb-4">
             <label className="block text-sm font-medium">Plataforma</label>
             <select
               className="w-full border border-gray-300 rounded-md py-2 px-3 text-black"
-              value={plataforma}
-              onChange={(e) => setPlataforma(e.target.value)}
+              value={platform}
+              onChange={(e) => setPlatform(e.target.value)}
             >
               <option value="">Selecione a Plataforma</option>
               <option value="PS1">PS1</option>
@@ -68,8 +78,8 @@ const CadastroJogo = () => {
             <label className="block text-sm font-medium">Gênero</label>
             <select
               className="w-full border border-gray-300 rounded-md py-2 px-3 text-black"
-              value={genero}
-              onChange={(e) => setGenero(e.target.value)}
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
             >
               <option value="">Selecione o Gênero</option>
               <option value="Ação">Ação</option>
@@ -84,8 +94,8 @@ const CadastroJogo = () => {
             <input
               type="number"
               className="w-full border border-gray-300 rounded-md py-2 px-3 text-black"
-              value={anoLancamento}
-              onChange={(e) => setAnoLancamento(e.target.value)}
+              value={release_year}
+              onChange={(e) => setReleaseYear(e.target.value)}
             />
           </div>
           <div className="flex space-x-4">

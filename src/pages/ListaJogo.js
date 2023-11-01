@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import Header from './Header';
+import Header from './Header.js';
 
 const ListaJogos = () => {
   const [jogos, setJogos] = useState([]);
 
   useEffect(() => {
-    const jogosSalvos = JSON.parse(localStorage.getItem('jogos')) || [];
-    setJogos(jogosSalvos);
+    fetch('http://localhost:3002/game')
+      .then((response) => response.json())
+      .then((data) => {
+        setJogos(data);
+      })
+      .catch((error) => {
+        alert('Erro ao buscar a lista de jogos.');
+      });
   }, []);
 
   const handleExcluir = (id) => {
     const novosJogos = jogos.filter((jogo) => jogo.id !== id);
     setJogos(novosJogos);
-    localStorage.setItem('jogos', JSON.stringify(novosJogos));
+    fetch(`http://localhost:3002/game/${id}`, {
+      method: 'DELETE',
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          alert('Jogo excluído com sucesso.');
+        } else {
+          alert('Erro ao excluir o jogo.');
+        }
+      })
+      .catch((error) => {
+        alert('Erro ao excluir o jogo.');
+      });
   };
 
   return (
@@ -46,22 +64,22 @@ const ListaJogos = () => {
           </thead>
           <tbody>
           {jogos.map((jogo) => (
-            <tr className="bg-white hover:bg-gray-50" >
+            <tr className="bg-white hover:bg-gray-50" key={jogo.id}>
               <th scope="col" className="px-6 py-3">
-                {jogo.nome}
+                {jogo.name}
               </th>
               <th scope="col" className="px-6 py-3">
-                {jogo.plataforma}
+                {jogo.platform}
               </th>
               <th scope="col" className="px-6 py-3">
-                {jogo.genero}
+                {jogo.genre}
               </th>
               <th scope="col" className="px-6 py-3">
-                {jogo.anoLancamento}
+                {jogo.release_year}
               </th>
               <th scope="col" className="px-6 py-3">
                 <Link 
-                  to={`/editar/${jogo.id}`} 
+                  to={`/editar/${jogo.ID}`} 
                   className="text-white text-center text-sm rounded-lg block bg-gradient-to-r from-cyan-500 to-blue-500 px-16 py-2"
                 >
                   Editar
@@ -69,7 +87,7 @@ const ListaJogos = () => {
               </th>
               <th scope="col" className="px-6 py-3">
                 <button 
-                  onClick={() => handleExcluir(jogo.id)} 
+                  onClick={() => handleExcluir(jogo.ID)} 
                   className="text-white text-center text-sm rounded-lg block bg-gradient-to-r from-red-500 to-orange-500 px-16 py-2"
                 >
                   Excluir
